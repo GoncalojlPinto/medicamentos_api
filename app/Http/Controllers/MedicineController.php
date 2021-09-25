@@ -3,7 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medicine;
+use Exception;
+use Illuminate\Contracts\Validation\Validator as ContractValidator;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 
 class MedicineController extends Controller
 {
@@ -14,7 +19,7 @@ class MedicineController extends Controller
      */
     public function index()
     {
-        return Medicine::all();
+        return response()->json(Medicine::all(), Response::HTTP_OK);
     }
 
     /**
@@ -25,11 +30,22 @@ class MedicineController extends Controller
      */
     public function store(Request $request)
     {
+        $input = $request->all();
+        $validator = $this->ValidateMedicineData($input);
+
+        if($validator->fails()){
+            return response()->json(["errors" => $validator->errors()], Response::HTTP_BAD_REQUEST);
+        }
         $medicine = new Medicine();
         $medicine->drug = $request->drug;
         $medicine->brand = $request->brand;
-        $medicine->save();
-        return $medicine;
+
+        try{
+            $medicine->save();
+            return response()->json($medicine, Response::HTTP_CREATED);
+        }catch(Exception $e){
+            return response()->json($this->getInternalErrorMessage("Ocorreu um erro ao tentar gravar o medicamento!"), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -40,7 +56,7 @@ class MedicineController extends Controller
      */
     public function show(Medicine $medicine)
     {
-        //
+        return response()->json($medicine, Response::HTTP_OK);
     }
 
     /**
@@ -52,7 +68,22 @@ class MedicineController extends Controller
      */
     public function update(Request $request, Medicine $medicine)
     {
-        //
+        $input = $request->all();
+        $validator = $this->validateMedicineData($input);
+
+        if($validator->fails()){
+            return response()->json(["errors" => $validator->errors()], Response::HTTP_BAD_REQUEST);
+        }
+
+        $medicine->brand = $input["brand"];
+        $medicine->drug = $input["drug"];
+
+        try{
+            $medicine->save();
+            return response()->json($medicine, Response::HTTP_OK);
+        }catch(Exception $e){
+            return response()->json($this->getInternalErrorMessage("Ocorreu um erro ao tentar gravar o medicamento!"), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -63,6 +94,26 @@ class MedicineController extends Controller
      */
     public function destroy(Medicine $medicine)
     {
-        //
+
+        try{
+            $medicine->delete();
+            return response()->json([], Response::HTTP_NO_CONTENT);
+        }catch(Exception $e){
+            return response()->json($this->getInternalErrorMessage("Erro ao tentar apagar medicamento"), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private function validateMedicineData(array $data): ContractValidator{
+
+        $rules = [
+            "drug" => "required|min:2",
+            "brand" => "required|min:2"
+        ];
+
+        return Validator::make($data, $rules);
+    }
+
+    private function getInternalErrorMessage(string $message): array{
+        return ["errors" => new MessageBag(["internal_error" => $message])];
     }
 }
