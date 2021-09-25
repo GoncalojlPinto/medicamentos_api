@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+Route::get("/user/tokens", [UserController::class, "showToken"])->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/user', [UserController::class, 'create']);
-Route::get('users/{id}', [UserController::class, 'show']);
+Route::post("/user", [UserController::class, "create"]);
 
 Route::resource('medicine', MedicineController::class)->except([
     'create', 'edit',

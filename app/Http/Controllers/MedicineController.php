@@ -10,8 +10,22 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\MessageBag;
 
+/**
+ * @group Medicamentos
+ *
+ * endpoints for managing medicine
+ */
+
 class MedicineController extends Controller
 {
+
+    public function __construct() {
+
+        $this->middleware('auth:sanctum');
+    }
+
+
+
     /**
      * Display a listing of the resource.
      *
@@ -23,7 +37,13 @@ class MedicineController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created medicine in storage.
+     *
+     * @bodyParam brand string required Brand of the medicine. Example: ben-u-ron
+     * @bodyParam drug string required Drug of the medicine. Example: paracetamol
+     *
+     *
+     * @response scenario=sucess status=201
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -50,6 +70,7 @@ class MedicineController extends Controller
 
     /**
      * Display the specified resource.
+     * @urlParam id integer required The ID of the medicine. Example: 4
      *
      * @param  \App\Models\Medicine  $medicine
      * @return \Illuminate\Http\Response
@@ -88,6 +109,8 @@ class MedicineController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     *@urlParam id integer required the ID of the medicine. Example: 4
      *
      * @param  \App\Models\Medicine  $medicine
      * @return \Illuminate\Http\Response
